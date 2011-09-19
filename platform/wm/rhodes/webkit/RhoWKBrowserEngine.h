@@ -1,14 +1,19 @@
 #pragma once
 
-#include "ibrowserengine.h"
+#include "IBrowserEngine.h"
+#include "webkit/PBCore/Config.h"
 
 class CWebKitEngine;
+
 namespace rho
 {
 
 class CRhoWKBrowserEngine :  public rho::IBrowserEngine
 {
     static WNDPROC m_WebKitOwnerProc;
+    static CConfig* g_pConfig;
+    static WCHAR CRhoWKBrowserEngine::g_szConfigFilePath[MAX_PATH + 1];
+    static WCHAR CRhoWKBrowserEngine::g_szInstallDirectory[MAX_PATH + 1];
     CWebKitEngine* m_pEngine;
 
     static LRESULT CALLBACK WK_HTMLWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
