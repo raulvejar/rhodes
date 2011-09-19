@@ -4,59 +4,71 @@
 #include "webkit/PBCore/Eng.h"
 #include "MainWindow.h"
 
+extern "C" HWND rho_wmimpl_get_mainwnd();
+
 namespace rho
 {
 WNDPROC CRhoWKBrowserEngine::m_WebKitOwnerProc;
 
-CRhoWKBrowserEngine::CRhoWKBrowserEngine(HWND hParentWnd, HINSTANCE hInstance) : m_wkengine(NULL)
+LRESULT CALLBACK onTopmostWnd(EngineEventID eeID, LPARAM value, int tabIndex)
 {
-    m_wkengine = new CWebKitEngine(hParentWnd, hInstance);
-    if(m_wkengine->Init(L"PBEngine_WK.dll")) 
+	//	The engine needs to navigate to a page before it can provide the topmost window.
+	//  We cannot call preload until we have a valid window handle
+	//	If all of the instances have been loaded then the meta event and navigate event will be registered 
+	
+	return PostMessage(rho_wmimpl_get_mainwnd(),PB_ONTOPMOSTWINDOW,(LPARAM)tabIndex,(WPARAM)value);
+}
+
+CRhoWKBrowserEngine::CRhoWKBrowserEngine(HWND hParentWnd, HINSTANCE hInstance) : m_pEngine(NULL)
+{
+    m_pEngine = new CWebKitEngine(hParentWnd, hInstance);
+    if(m_pEngine->Init(L"PBEngine_WK.dll")) 
     {
-        m_wkengine->InitEngine(0, &WK_HTMLWndProc, &m_WebKitOwnerProc, SETTING_OFF, &WK_GetEngineConfig);
+        m_pEngine->InitEngine(0, &WK_HTMLWndProc, &m_WebKitOwnerProc, SETTING_OFF, &WK_GetEngineConfig);
+	    m_pEngine->RegisterForEvent(EEID_TOPMOSTHWNDAVAILABLE, onTopmostWnd);
     }
 }
 
 CRhoWKBrowserEngine::~CRhoWKBrowserEngine(void)
 {
-    m_wkengine->DeInitEngine();
+    m_pEngine->DeInitEngine();
     //TODO: delete engine - now it crash when delete
-    //delete m_wkengine;
+    //delete m_pEngine;
 }
 
 BOOL CRhoWKBrowserEngine::Navigate(LPCTSTR szURL)
 {
-    return m_wkengine->Navigate(szURL);
+    return m_pEngine->Navigate(szURL);
 }
 
 HWND CRhoWKBrowserEngine::GetHTMLWND()
 {
-    return m_wkengine->GetHTMLWND();
+    return m_pEngine->GetHTMLWND();
 }
 
 BOOL CRhoWKBrowserEngine::ResizeOnTab(int iInstID,RECT rcNewSize)
 {
-    return m_wkengine->ResizeOnTab(iInstID,rcNewSize);
+    return m_pEngine->ResizeOnTab(iInstID,rcNewSize);
 }
 
 BOOL CRhoWKBrowserEngine::BackOnTab(int iInstID,int iPagesBack/* = 1*/)
 {
-    return m_wkengine->BackOnTab(iInstID,iPagesBack);
+    return m_pEngine->BackOnTab(iInstID,iPagesBack);
 }
 
 BOOL CRhoWKBrowserEngine::ForwardOnTab(int iInstID)
 {
-    return m_wkengine->ForwardOnTab(iInstID);
+    return m_pEngine->ForwardOnTab(iInstID);
 }
 
 BOOL CRhoWKBrowserEngine::Reload(bool bFromCache)
 {
-    return m_wkengine->Reload(bFromCache);
+    return m_pEngine->Reload(bFromCache);
 }
 
 BOOL CRhoWKBrowserEngine::NavigateToHtml(LPCTSTR szHtml)
 {
-    //return m_wkengine->NavigateToHtml(szHtml);
+    //return m_pEngine->NavigateToHtml(szHtml);
     //TODO: NavigateToHtml
 
     return FALSE;
@@ -83,6 +95,81 @@ LRESULT CALLBACK CRhoWKBrowserEngine::WK_GetEngineConfig(int iInstID, LPCTSTR tc
     tcValue = NULL;
     return S_OK;
 } 
+
+LRESULT CALLBACK onNavEvent(EngineEventID eeID, LPARAM value, int tabIndex)
+{
+	BOOL bOk = FALSE;
+	DWORD dwRes = WAIT_FAILED;
+	
+	switch(eeID)
+	{
+	case EEID_BEFORENAVIGATE:
+        break;
+    case EEID_NAVIGATECOMPLETE:
+        break;
+    case EEID_DOCUMENTCOMPLETE:
+        SendMessage(rho_wmimpl_get_mainwnd(), WM_BROWSER_ONDOCUMENTCOMPLETE, 0, value);
+        break;
+    case EEID_NAVIGATIONERROR:
+        break;
+    case EEID_NAVIGATIONTIMEOUT:
+        break;
+
+    }
+
+    return S_OK;
+}
+
+LRESULT CALLBACK onMeta(EngineEventID eeID, LPARAM value, int tabIndex)
+{
+    return S_OK;
+}
+
+LRESULT CALLBACK onFieldFocus(EngineEventID eeID, LPARAM value, int tabIndex)
+{
+    return S_OK;
+}
+
+LRESULT CALLBACK onConsoleMessage(EngineEventID eeID, LPARAM value, int tabIndex)
+{
+    return S_OK;
+}
+
+LRESULT CRhoWKBrowserEngine::ProcessOnTopMostWnd(HWND hWnd, int tabIndex)
+{
+	if(!m_pEngine->RegisterForEvent(EEID_METATAG,onMeta)){
+		return S_FALSE;
+	}
+	if(!m_pEngine->RegisterForEvent(EEID_DOCUMENTCOMPLETE,onNavEvent)){
+		return S_FALSE;
+	}
+	if(!m_pEngine->RegisterForEvent(EEID_NAVIGATECOMPLETE,onNavEvent)){
+		return S_FALSE;
+	}
+	if(!m_pEngine->RegisterForEvent(EEID_BEFORENAVIGATE,onNavEvent)){
+		return S_FALSE;
+	}
+	//Fired when the page load takes longer than the value specified by 'NavTimeout' in the config file
+	if(!m_pEngine->RegisterForEvent(EEID_NAVIGATIONTIMEOUT,onNavEvent)){
+		return S_FALSE;
+	}
+	//  Fired when the engine indicates an editable field has been clicked on
+	if (!m_pEngine->RegisterForEvent(EEID_SETSIPSTATE, onFieldFocus))
+	{
+	}
+
+	//  Fired when the engine gives us a console log message (JS error or window.console.log)
+	if (!m_pEngine->RegisterForEvent(EEID_CONSOLEMESSAGE, onConsoleMessage))
+	{
+	}
+
+	//Fired if there is an error navigating to the page, for example attempting to navigate to http://www.motorola.com if the device does not have a network connection.
+	if(!m_pEngine->RegisterForEvent(EEID_NAVIGATIONERROR,onNavEvent)){
+		return S_FALSE;
+	}
+
+    return S_OK;
+}
 
 LRESULT CRhoWKBrowserEngine::OnWebKitMessages(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
@@ -132,12 +219,12 @@ LRESULT CRhoWKBrowserEngine::OnWebKitMessages(UINT uMsg, WPARAM wParam, LPARAM l
 			}
 
 			if(_memicmp(pStr,L"JavaScript:",11*2) == 0){
-				if(m_wkengine->JavaScript_Exist(iTabID,pStr)){
-					return m_wkengine->JavaScriptInvoke(iTabID,pStr);
+				if(m_pEngine->JavaScript_Exist(iTabID,pStr)){
+					return m_pEngine->JavaScriptInvoke(iTabID,pStr);
 				}
 			}
 			else{
-                   return m_wkengine->NavigateOnTab(pStr,iTabID);
+                   return m_pEngine->NavigateOnTab(pStr,iTabID);
 			}
 		
 			break;
@@ -168,21 +255,22 @@ LRESULT CRhoWKBrowserEngine::OnWebKitMessages(UINT uMsg, WPARAM wParam, LPARAM l
 			break;
 		case PB_ONTOPMOSTWINDOW:
         {
+            return ProcessOnTopMostWnd((HWND)lParam,(int)wParam); 
 			//LRESULT rtRes = g_pAppManager->ProcessOnTopMostWnd((HWND)lParam,(int)wParam); 
 			//if(rtRes == S_FALSE){
 			//	PostMessage(PB_GEN_QUIT,0,0);//we have not successfully processed the topMostWindow so shutdown
 			//}
 			//return rtRes;
-            break;
+            //break;
         }		
 		case PB_WINDOW_RESTORE:
 			//  The window has been restored 
 			//BrowserRestore(0, NULL);
-	        ShowWindow(m_wkengine->GetHTMLWND(), SW_RESTORE);
+	        ShowWindow(m_pEngine->GetHTMLWND(), SW_RESTORE);
 	        //  Hide the Start Bar
 	        //PBScreenMode(g_bFullScreen, FALSE);
-	        SetForegroundWindow(m_wkengine->GetHTMLWND());
-	        EnableWindow(m_wkengine->GetHTMLWND(), TRUE);
+	        SetForegroundWindow(m_pEngine->GetHTMLWND());
+	        EnableWindow(m_pEngine->GetHTMLWND(), TRUE);
 
 			break;
 		case PB_SCREEN_ORIENTATION_CHANGED:
@@ -202,7 +290,7 @@ LRESULT CRhoWKBrowserEngine::OnWebKitMessages(UINT uMsg, WPARAM wParam, LPARAM l
 
 void CRhoWKBrowserEngine::RunMessageLoop(CMainWindow& mainWnd)
 {
-	tPB_PreprocessMessage lpPreprocessMessage = m_wkengine->GetlpPreprocessMessage();
+	tPB_PreprocessMessage lpPreprocessMessage = m_pEngine->GetlpPreprocessMessage();
 
 	LRESULT preProcRes;
     MSG msg;
