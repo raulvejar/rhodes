@@ -1,9 +1,0 @@
-ClearCase CopyAreaDB|4
-vobs\NEON\Helium\HeliumForWindows\Implementation\Engine\IEEngine\IEEngineCE
-2
-5
-a:resource.h|1|1322adea289|194|96d0726f|d81960b14c0311e0894000096bf57918|0
-f:IEEngineTab.cpp|1|1322adea0de|bccf|6840b002|1bf4dd977d6911e099c000096bf57918|0
-f:IEEngine.vcproj|1|1322ade9dba|3ed4|3cbe511d|64a5ab57a3ad11e098d900096bf57918|0
-31:THIS ENGINE IS BASED ON IE AND RUNS ON CE DEVICES|1|1322adea294|0|0|d94960b84c0311e0894400096bf57918|0
-d:IEEngineTab.h|1|1322adea24d|76f5|fb13da44|d64960aa4c0311e0893c00096bf57918|0

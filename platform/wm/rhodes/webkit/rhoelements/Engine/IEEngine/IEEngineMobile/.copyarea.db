@@ -1,9 +1,0 @@
-ClearCase CopyAreaDB|4
-vobs\NEON\Helium\HeliumForWindows\Implementation\Engine\IEEngine\IEEngineMobile
-2
-5
-31:THIS ENGINE IS BASED ON IE AND RUNS ON WM DEVICES|1|1322adea643|0|0|4727fd904e3011e09fd900096bf57918|0
-a:resource.h|1|1322adea62a|198|46a7743f|45f7fd8e4e3011e09fd500096bf57918|0
-13:IEMobileEngineTab.h|1|1322adea5ea|3cbd|59a4dc0f|4557fd864e3011e09fd100096bf57918|0
-15:IEMobileEngineTab.cpp|1|1322adea471|6ae4|d348e05c|54b2db3b975611e0829900096bf57918|0
-15:IEMobileEngine.vcproj|1|1322adea2eb|1bef|d1c7bb48|5a06a559a89711e08c3a00096bf57918|0

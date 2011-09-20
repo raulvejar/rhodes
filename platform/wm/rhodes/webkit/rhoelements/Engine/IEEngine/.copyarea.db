@@ -1,9 +1,0 @@
-ClearCase CopyAreaDB|4
-vobs\NEON\Helium\HeliumForWindows\Implementation\Engine\IEEngine
-2
-5
-a:IEEngineCE|2|0|0|0|0b48f4434e5611e08a8700096bf57918|0
-e:IEEngineCE.sln|1|1322ade9716|d7c|e730f0ce|2ce7fceb4e3011e09fa500096bf57918|0
-6:common|2|0|0|0|b6b95fc64c0311e0891100096bf57918|0
-e:IEEngineMobile|2|0|0|0|42f7fd824e3011e09fc500096bf57918|0
-12:IEMobileEngine.sln|1|1322ade973e|66a|6dd0ed54|2d87fcea4e3011e09faa00096bf57918|0
