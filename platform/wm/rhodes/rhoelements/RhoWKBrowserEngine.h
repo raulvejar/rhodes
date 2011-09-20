@@ -3,7 +3,7 @@
 #include "IBrowserEngine.h"
 #include "rhoelements/PBCore/PBCore/Config.h"
 
-class CWebKitEngine;
+class CEng;
 
 namespace rho
 {
@@ -14,7 +14,7 @@ class CRhoWKBrowserEngine :  public rho::IBrowserEngine
     static CConfig* g_pConfig;
     static WCHAR CRhoWKBrowserEngine::g_szConfigFilePath[MAX_PATH + 1];
     static WCHAR CRhoWKBrowserEngine::g_szInstallDirectory[MAX_PATH + 1];
-    CWebKitEngine* m_pEngine;
+    CEng* m_pEngine;
 
     static LRESULT CALLBACK WK_HTMLWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
     static LRESULT CALLBACK WK_GetEngineConfig(int iInstID, LPCTSTR tcSetting, TCHAR* tcValue);
@@ -29,12 +29,12 @@ public:
     virtual BOOL ResizeOnTab(int iInstID,RECT rcNewSize);
     virtual BOOL BackOnTab(int iInstID,int iPagesBack = 1);
     virtual BOOL ForwardOnTab(int iInstID);
-    virtual BOOL Reload(bool bFromCache);
+    virtual BOOL ReloadOnTab(bool bFromCache, UINT iTab);
     virtual BOOL NavigateToHtml(LPCTSTR szHtml);
     virtual LRESULT OnWebKitMessages(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
     virtual void RunMessageLoop(CMainWindow& mainWnd);
 
-    CWebKitEngine* getWebKitEngine() const;
+    CEng* getWebKitEngine() const;
 };
 
 }

@@ -1,8 +1,11 @@
 #include "stdafx.h"
 
+#ifdef APP_BUILD_CAPABILITY_WEBKIT_BROWSER
+
 #include "RhoWKBrowserEngine.h"
-#include "webkit/rhoelements/PBCore/PBCore/Eng.h"
 #include "MainWindow.h"
+
+#include "rhoelements/PBCore/PBCore/Eng.h"
 
 extern "C" HWND rho_wmimpl_get_mainwnd();
 
@@ -30,7 +33,7 @@ CRhoWKBrowserEngine::CRhoWKBrowserEngine(HWND hParentWnd, HINSTANCE hInstance) :
         if(pStr) *(pStr+1) = NULL;
     }
  	wcscpy(g_szConfigFilePath,g_szInstallDirectory);
-	wcscat(g_szConfigFilePath,L"Config.xml");
+	wcscat(g_szConfigFilePath,L"Config/Config.xml");
 	if((g_pConfig->Init(g_szConfigFilePath))==NULL)
 	{
 		WCHAR* szConfigErrorMsg = new WCHAR[MAX_PATH + 40];
@@ -38,7 +41,7 @@ CRhoWKBrowserEngine::CRhoWKBrowserEngine(HWND hParentWnd, HINSTANCE hInstance) :
 		MessageBox(NULL,szConfigErrorMsg, L"Config Error", MB_OK);
 		delete[] szConfigErrorMsg;
 	}
-    m_pEngine = new CWebKitEngine(hParentWnd, hInstance);
+    m_pEngine = new CEng(hParentWnd, hInstance);
     if (m_pEngine->Init(L"PBEngine_WK.dll")) 
     {
         m_pEngine->InitEngine(0, &WK_HTMLWndProc, &m_WebKitOwnerProc, SETTING_OFF, &WK_GetEngineConfig);
@@ -60,7 +63,7 @@ BOOL CRhoWKBrowserEngine::Navigate(LPCTSTR szURL)
 
 HWND CRhoWKBrowserEngine::GetHTMLWND()
 {
-    return m_pEngine->GetHTMLWND();
+    return m_pEngine->GetHTMLWND(0);
 }
 
 BOOL CRhoWKBrowserEngine::ResizeOnTab(int iInstID,RECT rcNewSize)
@@ -78,9 +81,9 @@ BOOL CRhoWKBrowserEngine::ForwardOnTab(int iInstID)
     return m_pEngine->ForwardOnTab(iInstID);
 }
 
-BOOL CRhoWKBrowserEngine::Reload(bool bFromCache)
+BOOL CRhoWKBrowserEngine::ReloadOnTab(bool bFromCache, UINT iTab)
 {
-    return m_pEngine->Reload(bFromCache);
+    return m_pEngine->ReloadOnTab(bFromCache, iTab);
 }
 
 BOOL CRhoWKBrowserEngine::NavigateToHtml(LPCTSTR szHtml)
@@ -283,11 +286,11 @@ LRESULT CRhoWKBrowserEngine::OnWebKitMessages(UINT uMsg, WPARAM wParam, LPARAM l
 		case PB_WINDOW_RESTORE:
 			//  The window has been restored 
 			//BrowserRestore(0, NULL);
-	        ShowWindow(m_pEngine->GetHTMLWND(), SW_RESTORE);
+	        ShowWindow(m_pEngine->GetHTMLWND(0), SW_RESTORE);
 	        //  Hide the Start Bar
 	        //PBScreenMode(g_bFullScreen, FALSE);
-	        SetForegroundWindow(m_pEngine->GetHTMLWND());
-	        EnableWindow(m_pEngine->GetHTMLWND(), TRUE);
+	        SetForegroundWindow(m_pEngine->GetHTMLWND(0));
+	        EnableWindow(m_pEngine->GetHTMLWND(0), TRUE);
 
 			break;
 		case PB_SCREEN_ORIENTATION_CHANGED:
@@ -344,9 +347,11 @@ void CRhoWKBrowserEngine::RunMessageLoop(CMainWindow& mainWnd)
     }
 }
 
-CWebKitEngine* CRhoWKBrowserEngine::getWebKitEngine() const
+CEng* CRhoWKBrowserEngine::getWebKitEngine() const
 {
     return m_pEngine;
 }
 
 }
+
+#endif //APP_BUILD_CAPABILITY_WEBKIT_BROWSER
