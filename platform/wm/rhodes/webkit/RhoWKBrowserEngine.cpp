@@ -38,6 +38,7 @@ CRhoWKBrowserEngine::CRhoWKBrowserEngine(HWND hParentWnd, HINSTANCE hInstance) :
 		MessageBox(NULL,szConfigErrorMsg, L"Config Error", MB_OK);
 		delete[] szConfigErrorMsg;
 	}
+
     m_pEngine = new CWebKitEngine(hParentWnd, hInstance);
     if (m_pEngine->Init(L"PBEngine_WK.dll")) 
     {
