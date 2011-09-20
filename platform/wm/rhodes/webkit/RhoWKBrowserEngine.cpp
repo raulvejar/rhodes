@@ -1,7 +1,7 @@
 #include "stdafx.h"
 
 #include "RhoWKBrowserEngine.h"
-#include "webkit/PBCore/Eng.h"
+#include "webkit/rhoelements/PBCore/PBCore/Eng.h"
 #include "MainWindow.h"
 
 extern "C" HWND rho_wmimpl_get_mainwnd();
@@ -325,6 +325,11 @@ void CRhoWKBrowserEngine::RunMessageLoop(CMainWindow& mainWnd)
 	    }
 
     }
+}
+
+CWebKitEngine* CRhoWKBrowserEngine::getWebKitEngine() const
+{
+    return m_pEngine;
 }
 
 }
