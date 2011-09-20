@@ -1,7 +1,7 @@
 #pragma once
 
 #include "IBrowserEngine.h"
-#include "webkit/PBCore/Config.h"
+#include "rhoelements/PBCore/PBCore/Config.h"
 
 class CWebKitEngine;
 
