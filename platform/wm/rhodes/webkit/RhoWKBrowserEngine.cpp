@@ -9,23 +9,40 @@ extern "C" HWND rho_wmimpl_get_mainwnd();
 namespace rho
 {
 WNDPROC CRhoWKBrowserEngine::m_WebKitOwnerProc;
+CConfig* CRhoWKBrowserEngine::g_pConfig = new CConfig();
+WCHAR CRhoWKBrowserEngine::g_szConfigFilePath[MAX_PATH + 1];
+WCHAR CRhoWKBrowserEngine::g_szInstallDirectory[MAX_PATH + 1];
 
 LRESULT CALLBACK onTopmostWnd(EngineEventID eeID, LPARAM value, int tabIndex)
 {
-	//	The engine needs to navigate to a page before it can provide the topmost window.
-	//  We cannot call preload until we have a valid window handle
-	//	If all of the instances have been loaded then the meta event and navigate event will be registered 
+	// The engine needs to navigate to a page before it can provide the topmost window.
+	// We cannot call preload until we have a valid window handle
+	// If all of the instances have been loaded then the meta event and navigate event will be registered 
 	
 	return PostMessage(rho_wmimpl_get_mainwnd(),PB_ONTOPMOSTWINDOW,(LPARAM)tabIndex,(WPARAM)value);
 }
 
 CRhoWKBrowserEngine::CRhoWKBrowserEngine(HWND hParentWnd, HINSTANCE hInstance) : m_pEngine(NULL)
 {
+    if(GetModuleFileName(NULL, g_szInstallDirectory, MAX_PATH)){
+        //trim the file name off the end
+        WCHAR* pStr = wcsrchr(g_szInstallDirectory,L'\\');
+        if(pStr) *(pStr+1) = NULL;
+    }
+ 	wcscpy(g_szConfigFilePath,g_szInstallDirectory);
+	wcscat(g_szConfigFilePath,L"Config.xml");
+	if((g_pConfig->Init(g_szConfigFilePath))==NULL)
+	{
+		WCHAR* szConfigErrorMsg = new WCHAR[MAX_PATH + 40];
+		wsprintf(szConfigErrorMsg, L"Please check your config.xml (%s)", g_szConfigFilePath);
+		MessageBox(NULL,szConfigErrorMsg, L"Config Error", MB_OK);
+		delete[] szConfigErrorMsg;
+	}
     m_pEngine = new CWebKitEngine(hParentWnd, hInstance);
-    if(m_pEngine->Init(L"PBEngine_WK.dll")) 
+    if (m_pEngine->Init(L"PBEngine_WK.dll")) 
     {
         m_pEngine->InitEngine(0, &WK_HTMLWndProc, &m_WebKitOwnerProc, SETTING_OFF, &WK_GetEngineConfig);
-	    m_pEngine->RegisterForEvent(EEID_TOPMOSTHWNDAVAILABLE, onTopmostWnd);
+        m_pEngine->RegisterForEvent(EEID_TOPMOSTHWNDAVAILABLE, onTopmostWnd);
     }
 }
 
@@ -87,13 +104,13 @@ LRESULT CALLBACK CRhoWKBrowserEngine::WK_HTMLWndProc(HWND hwnd, UINT message, WP
 
 LRESULT CALLBACK CRhoWKBrowserEngine::WK_GetEngineConfig(int iInstID, LPCTSTR tcSetting, TCHAR* tcValue)
 {
-    //LPCTSTR tcValueRead;
-    //tcValueRead = g_pConfig->GetAppSettingPtr(iInstID, tcSetting, L"Value");
-    //if (tcValueRead != NULL)
-    //  wcscpy(tcValue, tcValueRead);
-    //else
-    tcValue = NULL;
-    return S_OK;
+	LPCTSTR tcValueRead;
+	tcValueRead = g_pConfig->GetAppSettingPtr(iInstID, tcSetting, L"Value");
+	if (tcValueRead != NULL)
+		wcscpy(tcValue, tcValueRead);
+	else
+		tcValue = NULL;
+	return S_OK;
 } 
 
 LRESULT CALLBACK onNavEvent(EngineEventID eeID, LPARAM value, int tabIndex)

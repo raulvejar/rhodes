@@ -1,0 +1,10 @@
+ClearCase CopyAreaDB|4
+vobs\NEON\Helium\HeliumForWindows\Implementation\Engine\common
+2
+6
+f:pbengine_defs.h|1|1322ade939f|409a|1b44cbf1|760b699dcd1011e094a500096bf57918|0
+12:PBEngine_Exports.h|1|1322ade9670|3f30|284ca646|4b96972569724360a021e75421035be3|0
+c:pbengine.def|1|1322ade96b4|722|72d51a38|57d3f9d6747941cfac63f364c5a315ea|0
+14:PBEngine_Exports.cpp|1|1322ade959d|525d|f7d597ce|d92a3e579b5f4870806fc530a6721c6f|0
+a:Engine.cpp|1|1322ade91a7|242|ef65acc3|e5790a044bf611e085dc00096bf57918|0
+8:Engine.h|1|1322ade92d7|5d71|6eb5a606|eb2f0108b1524d4895248637d67ce35b|0

@@ -1,0 +1,8 @@
+ClearCase CopyAreaDB|4
+vobs\NEON\Helium\HeliumForWindows\Implementation\RegExParser
+2
+4
+16:RegularExpressions.cpp|1|1322adf6cc3|117b|3da13c9b|1749db2a4c1611e0934d00096bf57918|0
+8:regexp.h|1|1322adf6c7f|5acf|9e8b3f83|1619db204c1611e0934a00096bf57918|0
+a:regexp.cpp|1|1322adf6b9a|16f83|3d5f9e79|14e9db354c1611e0934000096bf57918|0
+14:RegularExpressions.h|1|1322adf6cec|1726|666a2c5a|1879db314c1611e0935100096bf57918|0

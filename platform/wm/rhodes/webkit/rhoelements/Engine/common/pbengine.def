@@ -1,0 +1,93 @@
+EXPORTS	
+; Setup
+	PB_InitEngine
+	PB_DeinitEngine
+	PB_CreateEngine
+	PB_RegisterForEvent
+	PB_PreprocessMessage
+
+; Browsing
+	PB_Navigate
+	PB_NavigateOnTab	
+	PB_Stop
+	PB_StopOnTab		
+	PB_Reload
+	PB_ReloadOnTab		
+    PB_Zoom             
+    PB_ZoomOnTab	
+    PB_GetZoomOnTab	
+	PB_ZoomText
+	PB_ZoomTextOnTab	
+	PB_GetZoomTextOnTab
+    
+; HWND Accessors
+	PB_GetHTMLHWND
+	PB_GetHTMLHWNDOnTab
+	PB_GetParentHWND
+    
+; Scrollbars    
+	PB_SetScrollBars
+	PB_SetScrollBarsOnTab		
+	PB_GetScrollBars
+	PB_GetScrollBarsOnTab		
+	PB_Scrollbars_HPosSet		
+	PB_Scrollbars_HPosSetOnTab  
+	PB_Scrollbars_HPosGet		
+	PB_Scrollbars_HPosGetOnTab	
+	PB_Scrollbars_VPosSet		
+	PB_Scrollbars_VPosSetOnTab	
+	PB_Scrollbars_VPosGet		
+	PB_Scrollbars_VPosGetOnTab	
+	PB_Scrollbars_SizeGet
+	PB_Scrollbars_SizeGetOnTab
+
+; Tabs
+	PB_Tab_New				
+	PB_Tab_Close			
+	PB_Tab_CloseCurrent		
+	PB_Tab_Switch			
+	PB_Tab_Resize
+	PB_Tab_GetID			
+	PB_Tab_Count		    
+	PB_Tab_GetTitle			
+	PB_Tab_GetTitleOnTab
+	PB_Tab_GetIconOnTab
+	PB_Tab_ShowSwitcher	
+	PB_Tab_Lock	
+
+; JavaScript
+	PB_JS_Invoke			
+	PB_JS_InvokeOnTab		
+	PB_JS_Exists			
+	PB_JS_ExistsOnTab		
+
+; History
+	PB_History_GoForward		
+	PB_History_GoForwardOnTab	
+	PB_History_GoBack			
+	PB_History_GoBackOnTab		
+
+; Preferences
+	PB_SetFitToScreen       
+	PB_GetFitToScreen       
+	PB_SetClearType         
+	PB_GetClearType         
+	PB_SetJavaScript
+	PB_GetJavaScript
+	PB_SetImages
+	PB_GetImages
+	PB_SetSounds            
+	PB_GetSounds            
+	PB_SetActiveX           
+	PB_GetActiveX           
+    PB_SetBrowserGesturing  
+    PB_GetBrowserGesturing  
+	PB_SetNavigationTimeout
+	PB_GetNavigationTimeout
+	PB_SetAcceleratorMode   
+	PB_GetAcceleratorMode   
+
+; Location
+        PB_SetLocationInterface
+        PB_UpdateLocation
+    
