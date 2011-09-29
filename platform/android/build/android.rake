@@ -179,6 +179,7 @@ def set_app_name_android(newname)
   
   element = REXML::Element.new('uses-sdk')
   element.add_attribute('android:minSdkVersion', $min_sdk_level.to_s)
+  element.add_attribute('android:maxSdkVersion', $max_sdk_level.to_s) unless $max_sdk_level.nil?
   manifest.add element
 
   # Remove category LAUNCHER from all activities if hidden_app is set
@@ -315,6 +316,7 @@ namespace "config" do
     $min_sdk_level = $min_sdk_level.to_i unless $min_sdk_level.nil?
     $min_sdk_level = ANDROID_SDK_LEVEL if $min_sdk_level.nil?
 
+    $max_sdk_level = $app_config["android"]["maxSDK"] unless $app_config["android"].nil?
 
     # Here is switch between release/debug configuration used for
     # building native libraries
@@ -510,7 +512,6 @@ namespace "config" do
     $keystore = nil
     $keystore = $app_config["android"]["production"]["certificate"] if !$app_config["android"].nil? and !$app_config["android"]["production"].nil?
     $keystore = $config["android"]["production"]["certificate"] if $keystore.nil? and !$config["android"].nil? and !$config["android"]["production"].nil?
-    $keystore = File.expand_path($keystore, $app_path) unless $keystore.nil?
     $keystore = File.expand_path(File.join(ENV['HOME'], ".rhomobile", "keystore")) if $keystore.nil?
 
     $storepass = nil
@@ -838,7 +839,7 @@ namespace "build" do
       libname = $libname["ruby"]
       args = []
       args << "-I#{srcdir}/include"
-      args << "-I#{srcdir}/android"
+      args << "-I#{srcdir}/linux"
       args << "-I#{srcdir}/generated"
       args << "-I#{srcdir}"
       args << "-I#{srcdir}/.."
@@ -924,7 +925,7 @@ namespace "build" do
       args << "-I#{$shareddir}"
       args << "-I#{$shareddir}/curl/include"
       args << "-I#{$shareddir}/ruby/include"
-      args << "-I#{$shareddir}/ruby/android"
+      args << "-I#{$shareddir}/ruby/linux"
       args << "-I#{$std_includes}" unless $std_includes.nil?
       args << "-D__NEW__" if USE_OWN_STLPORT
       args << "-I#{$stlport_includes}" if USE_OWN_STLPORT
@@ -1113,7 +1114,7 @@ namespace "build" do
       args << "-I#{$shareddir}/sqlite"
       args << "-I#{$shareddir}/curl/include"
       args << "-I#{$shareddir}/ruby/include"
-      args << "-I#{$shareddir}/ruby/android"
+      args << "-I#{$shareddir}/ruby/linux"
       args << "-I#{$std_includes}" unless $std_includes.nil?
       args << "-D__SGI_STL_INTERNAL_PAIR_H" if USE_OWN_STLPORT
       args << "-D__NEW__" if USE_OWN_STLPORT
@@ -1324,7 +1325,6 @@ namespace "build" do
 		      if !$use_geomapping
 			        next if line == "platform/android/Rhodes/src/com/rhomobile/rhodes/mapview/GoogleMapView.java"
 			        next if line == "platform/android/Rhodes/src/com/rhomobile/rhodes/mapview/AnnotationsOverlay.java"
-                    next if line == "platform/android/Rhodes/src/com/rhomobile/rhodes/mapview/CalloutOverlay.java"
 		      end
 
           #next if !$use_geomapping and line =~ /\/GoogleMapView\//
@@ -1633,9 +1633,11 @@ namespace "run" do
         log_name  = $app_path + '/RhoLogSpec.txt'
         File.delete(log_name) if File.exist?(log_name)
 
-        AndroidTools.logclear($device_flag)
-        run_emulator( :hidden => true ) if $device_flag == '-e'
-        do_uninstall($device_flag)
+        device_flag = '-e'
+
+        AndroidTools.logclear(device_flag)
+        run_emulator( :hidden => true ) if device_flag == '-e'
+        do_uninstall(device_flag)
         
         # Failsafe to prevent eternal hangs
         Thread.new {
@@ -1643,8 +1645,8 @@ namespace "run" do
           AndroidTools.kill_adb_and_emulator
         }
 
-        load_app_and_run($device_flag)
-        AndroidTools.logcat($device_flag, log_name)
+        load_app_and_run(device_flag)
+        AndroidTools.logcat(device_flag, log_name)
 
         Jake.before_run_spec
         start = Time.now
@@ -1652,8 +1654,8 @@ namespace "run" do
         puts "waiting for application"
 
         for i in 0..60
-            if AndroidTools.application_running($device_flag, $app_package_name)
-                break
+            if AndroidTools.application_running(device_flag, $app_package_name)
+		break
             else
                 sleep(1)
             end
@@ -1661,7 +1663,7 @@ namespace "run" do
 
         puts "waiting for log: " + log_name
         
-        for i in 0..120
+        for i in 0..60
 			if !File.exist?(log_name)
 				sleep(1)
 			else
@@ -1688,71 +1690,28 @@ namespace "run" do
             end
             io.close
             
-            break unless AndroidTools.application_running($device_flag, $app_package_name)
+            break unless AndroidTools.application_running(device_flag, $app_package_name)
             sleep(5) unless end_spec
         end
 
         Jake.process_spec_results(start)        
         
         # stop app
-        do_uninstall($device_flag)
+        do_uninstall(device_flag)
         kill_adb
 
         $stdout.flush
+        
     end
 
-    task :phone_spec => "phone_spec:emulator"
-
-    task :framework_spec => "framework_spec:emulator"
-
-    namespace "phone_spec" do
-      task :device do
-        $device_flag = "-d"
-        Jake.run_spec_app('android','phone_spec')
-        exit $failed.to_i unless $dont_exit_on_failure
-      end
-
-      task :emulator do
-        $device_flag = "-e"
-        Jake.run_spec_app('android','phone_spec')
-        exit $failed.to_i unless $dont_exit_on_failure
-      end
+    task :phone_spec do
+      exit Jake.run_spec_app('android','phone_spec')
     end
 
-    namespace "framework_spec" do
-      task :device do
-        $device_flag = "-d"
-        Jake.run_spec_app('android','framework_spec')
-        exit $failed.to_i unless $dont_exit_on_failure
-      end
-
-      task :emulator do
-        $device_flag = "-e"
-        Jake.run_spec_app('android','framework_spec')
-        exit $failed.to_i unless $dont_exit_on_failure
-      end
+    task :framework_spec do
+      exit Jake.run_spec_app('android','framework_spec')
     end
-
-    task :allspecs do
-      $dont_exit_on_failure = true
-      Rake::Task['run:android:phone_spec'].invoke
-      Rake::Task['run:android:framework_spec'].invoke
-      failure_output = ""
-      if $failed.to_i > 0
-        failure_output = ""
-        failure_output += "phone_spec failures:\n\n" + File.open(app_expanded_path('phone_spec') + "/faillog.txt").read if
-          File.exist?(app_expanded_path('phone_spec') + "/faillog.txt")
-        failure_output += "framework_spec failures:\n\n" + File.open(app_expanded_path('framework_spec') + "/faillog.txt").read if
-          File.exist?(app_expanded_path('framework_spec') + "/faillog.txt")
-        chdir basedir
-        File.open("faillog.txt", "w") { |io| failure_output.each {|x| io << x }  }
-      end
-      puts "Agg Total: #{$total}"
-      puts "Agg Passed: #{$passed}"
-      puts "Agg Failed: #{$failed}"
-      exit $failed.to_i
-    end
-
+    
     task :emulator => "device:android:debug" do
         run_emulator
         load_app_and_run
@@ -2027,4 +1986,3 @@ namespace "clean" do
   task :all => [:assets,:librhodes,:libs,:files]
   end
 end
-
